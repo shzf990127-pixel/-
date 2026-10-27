@@ -1,6 +1,6 @@
 # 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-10-27 18:24。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-10-27 18:34。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -11130,6 +11130,54 @@ method: doubao-fetch
 - 细粒度 token 天生：不能建 Gist / 不能建仓；只有 Contents RW（用户手改给了）
 - 账号里那个叫 `-` 的仓就是宿主（名字虽怪但 URL 正常）
 - token 在聊天里明文过两代 → 用完在 GitHub 删除/重签，脚本从 .secrets/github.token 读取
+
+# 🔬 2026-10-27 通道 v3：豆包要 text/html，DS 根本不读链接
+
+## 💬 用户完整原话（要点）
+> 我按了一下，图表变成沙漏，再一会就出现链接可以复制了。（按钮已生效 ✅）
+> 可是豆包看，他说只有局部的对话内容……DS 无法查看。豆包：你给的cdn链接访问不到原始文件。
+
+## 🔍 三条根因（全部实测取证）
+| 现象 | 实测证据 | 结论 |
+|---|---|---|
+| 豆包读不到 | jsDelivr 返回 `content-type: text/markdown`；raw 返回 `text/plain` | ❗豆包只解析 **text/html 真网页**，纯文本链接它拒收 → 于是它按「handoff 常识」**编造**了模板（第二次编造事故） |
+| jsDelivr 对 .html 也返回 text/plain | 实测 index.html → `text/plain` 447KB | jsDelivr 不能当网页用 |
+| 三个 HTML 中转全挂 | raw.githack / statically / github blob → ECONNRESET / TIMEOUT | CN 网络不可达（不代表豆包不可达，但不能赌） |
+| DS 打不开 | DS 回复只在猜链接格式，末尾推断 | ❗**DS 手机端不读任何链接**（已二次验证），只能「附件/粘贴」 |
+
+## ✅ 通道 v3 定稿
+| 谁 | 通道 | 状态 |
+|---|---|---|
+| **豆包** | **GitHub Pages**：`https://shzf990127-pixel.github.io/-/`（text/html 真网页） | ⏳ **需用户网页点一次 Pages 开关**（token 无 Pages 权限，API 试开 403） |
+| 豆包备用 | 8899 + cpolar（本地服务本来就是 text/html） | 等 F10 |
+| **DS** | ①手机浏览器(Tailscale/同WiFi)→8899 下载 handoff-full.md→传附件 ②复制粘贴链接版 ③手传 md | ✅ 无需开发 |
+| 全量档 | raw/jsDelivr 的 **.md** 仍可给「人/浏览器下载」，但不能给 AI 读 | ✅ |
+
+## 机制补强
+- publish-github 现在一次推 **3 件**：handoff.md（人下载）+ handoff-full.md（DS 附件）+ **index.html（Pages 网页）**
+- 用户点开 Pages 后，每次按钮自动更新 → 豆包粘同一 URL 永远读最新
+
+# 🏁 2026-10-27 通道定稿：唯一主链接 = GitHub Pages
+
+## 💬 用户原话
+> 开关已经做好了，我开了。DS 打开我们的链接出现 ERR_CONNECTION_RESET。
+> 是不是 DS 换个思路，只要 http 的网址就可以了呢？我不懂技术，全权交给你做决策。我只要链接可以用。
+
+## 🔍 八条通道实测（本机 CN 网络，iPhone UA）
+| 通道 | 状态 | content-type | 判定 |
+|---|---|---|---|
+| **GitHub Pages** | 200 / 884ms / 959KB | **text/html** ✅ | **✅ 主链接** |
+| jsDelivr 原版/fastly/gcore/onmicrosoft | 200 但 8~9s | text/plain | ❌ AI 不解析 |
+| gh-proxy.com | 200 | text/plain | ❌ |
+| ghproxy.net / mirror.ghproxy | 超时 | — | ❌ |
+
+## ✅ 定稿
+- **唯一主链接：https://shzf990127-pixel.github.io/-/**
+  - 豆包：直接粘（真网页）
+  - DS：DS 不解析链接内容，但**能用 DS 内置浏览器打开这个网页** → 页面上「📋 复制全文」→ 粘回 DS 对话；或手机浏览器下载 → DS 传附件
+- jsDelivr/raw 的 .md 降级为「人工下载」用途（AI 拒收 text/plain，这是豆包/DS 实测行为）
+- DS 之前 ERR_CONNECTION_RESET = 打开的是 jsdelivr 域名，手机网络对该域名 reset（不是我们内容的问题）
+- 终极可选方案：cpolar 指向 8899（自带 text/html，自家域名）→ 仍挂在 F10
 
 
 <!-- ====== 50 / 逆向倒推-成品审计（来自:主工作区） ====== -->
