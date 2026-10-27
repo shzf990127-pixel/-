@@ -16,11 +16,11 @@
  <button id="c" onclick="copyAll()">📋 复制全文（粘给 AI）</button>
  <button id="d" onclick="dl()">⬇️ 下载 md（聊天框上传附件用·最保险）</button>
  <span id="tip">已复制 ✓</span>
- <span class="hint">全量 86 份 · 446 KB · 2026-10-27 18:34</span>
+ <span class="hint">全量 86 份 · 447 KB · 2026-10-27 18:43</span>
 </div>
 <pre id="doc"># 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-10-27 18:34。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-10-27 18:43。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -11198,6 +11198,30 @@ method: doubao-fetch
 - jsDelivr/raw 的 .md 降级为「人工下载」用途（AI 拒收 text/plain，这是豆包/DS 实测行为）
 - DS 之前 ERR_CONNECTION_RESET = 打开的是 jsdelivr 域名，手机网络对该域名 reset（不是我们内容的问题）
 - 终极可选方案：cpolar 指向 8899（自带 text/html，自家域名）→ 仍挂在 F10
+
+# 🎉 2026-10-27 cpolar 隧道打通：DS 也有了国内可达链接
+
+## 💬 用户原话
+> 我是要把 DSH 当前会话的内容整理成文件，让手机端 DS 能看到聊天上下文续上对话。哪来的手机浏览器，我要的是链接 DS 也可以用。
+> 现在链接复制过去 DS 无法打开。你用你的方法…生产两条链接。一个豆包可用，一个 DS 可用。
+
+## 🔑 根因补齐
+- DS 在**用户手机网络**里打开 → GitHub Pages 的 github.io、jsdelivr 在国内手机网络被重置 → DS 打不开（不是内容问题）
+- 豆包是**服务端抓**（字节机房国际出口）→ Pages 能读
+
+## ✅ 双链接定稿（实测）
+| 给谁 | 链接 | 机制 | 实测 |
+|---|---|---|---|
+| **DS（及两者通用）** | **https://340f446d.r10.cpolar.top** | cpolar 国内 r10 节点 → 本机 8899（text/html 页面，含📋复制全文） | ✅ 200/内容在/复制按钮在 |
+| 豆包 | 同一条 cpolar，或 https://shzf990127-pixel.github.io/-/ | Pages（字节服务端可读） | ✅ 200 text/html |
+
+## 本机复用发现
+- DSH 的 mobile-access 里 **已内置 cpolar 3.3.18**（PID 8092，隧道 4cd6e535.r2.cpolar.cn → 3443）；我们用 3.3.12（E:\dsh创造\tools\tunnel）+ 同一 authtoken 起第二条隧道，free 账号实测**可开 2 条**
+- 一键脚本：`tools\tunnel-start.cmd`（起 8899 + cpolar + 打印 URL）；查 URL：`node tools\tunnel-info.mjs`
+
+## ⚠️ 免费版代价
+- 域名随机，**cpolar 重启就变** → 每次换了就重发链接；要固定 → cpolar ¥99/年（= F10 那个决定）或 Gitee Pages
+- 要求电脑开着 + 8899 + cpolar 在跑
 
 
 &lt;!-- ====== 50 / 逆向倒推-成品审计（来自:主工作区） ====== -->
