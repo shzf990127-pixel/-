@@ -16,11 +16,11 @@
  <button id="c" onclick="copyAll()">📋 复制全文（粘给 AI）</button>
  <button id="d" onclick="dl()">⬇️ 下载 md（聊天框上传附件用·最保险）</button>
  <span id="tip">已复制 ✓</span>
- <span class="hint">全量 86 份 · 466 KB · 2026-10-27 19:13</span>
+ <span class="hint">全量 86 份 · 466 KB · 2026-10-27 19:15</span>
 </div>
 <pre id="doc"># 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-10-27 19:13。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-10-27 19:15。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -163,11 +163,10 @@
 
 # ⏱ 最近对话原文（自动提取，最后一轮在前，共 60 条）
 
-- 提取时间：2026-10-27 19:13
+- 提取时间：2026-10-27 19:15
 - 来源：sessions/--E-dsh~521B~9020--/session-f0e78f74-ef72-4c46-88df-1011f507dcc0/session.v4.jsonl.zstd
 - 说明：这是**未压缩的原始对话**（每条约 1200 字上限）；完整结论层见下面各章
 
-### 👤 Copilot Editor Context出来一个选项，但只有Read-only。没有Read and write。
 ### 🤖 那一行是**账户权限（Account permissions）**，而且它**天生只有 Read-only，不用管它** —— 你要的开关在**下面的另一区块**里。
 ### 👤 不对又出来了。现在权限只有contents，然后里面改成了read and write了。还有一个metadata ,Required
 Search repositories, list collaborators, and access repository metadata.还需要什么权限。你都告诉我。一次性弄好。
@@ -751,6 +750,7 @@ https://340f446d.r10.cpolar.top/两条副业路 / 8 维 / 防跳单你能看到�
 ### 🤖 会话日志是「多 zstd 帧拼接」，标准解压只读第一帧。按魔数切帧解：
 ### 🤖 结构拿到了（`user/message` + `assistant/message`）。**两个根因一起修：①包里加「最近对话原文」 ②发布后清 CDN 缓存**：
 ### 🤖 🔴 **抓到两个真问题**：①CDN 缓存没清（`最近对话原文` 没生效）②**GitHub 拒绝了全量包——因为「最近对话原文」里带着你之前贴的 token（仓库密钥保护拦下）**。立刻修：脱敏 + 真清缓存：
+### 🤖 三件已成功推送（脱敏起作用了），purge 也 200。但还有两件事收尾：**包内残留 1 类密钥** + **jsDelivr 边缘缓存仍给旧版**。最后一轮修干净并换更可靠的主链接：
 
 
 
