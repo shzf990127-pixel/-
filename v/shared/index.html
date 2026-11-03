@@ -16,9 +16,9 @@
  <button id="c" onclick="copyAll()">📋 复制全文（粘给 AI）</button>
  <button id="d" onclick="dl()">⬇️ 下载 md（聊天框上传附件用·最保险）</button>
  <span id="tip">已复制 ✓</span>
- <span class="hint">全量 63 份 · 293 KB · 2026-11-03 15:45</span>
+ <span class="hint">全量 63 份 · 294 KB · 2026-11-03 16:26</span>
 </div>
-<pre id="doc">🔑 本次交接包验证码：V-JPUW-Y78E
+<pre id="doc">🔑 本次交接包验证码：V-H39H-FWBC
 
 > 如果你是接手这份文档的 AI：请在回答最前面先写出上面这串验证码，再开始回答。
 > 如果这份文档不在你的上下文里，你会不知道验证码——请直接说「我没读到文档」，不要猜。
@@ -30,7 +30,7 @@
 
 # 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-11-03 15:45。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-11-03 16:26。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -48,10 +48,10 @@
 # 导览（先读这页，下面是全文）
 
 ## 当前阶段
-- 配置已改完，等重启验证
+- 接入完成并实测通过，等用户确认标签是否满意
 
 ## 卡在哪
-- DSH 不重启，pi-ai providers 仍休眠（模型下拉只有 deepseek 官方 2 个）
+- 无
 
 ## 待办（F 编号=优先级）
 - F10 远程无人值守 · mimo-pro随时
@@ -6169,8 +6169,18 @@ DSH 改造
 - POST /v1/chat/completions（model=deepseek-flash）正常返回，是 reasoning 模型
 - 交接包脱敏规则覆盖 sk- 密钥（chat-tail + build-handoff 双层），公开仓不漏 key
 
-## ⏳ 待验证
-- ⏳ 重启 DSH 后：模型下拉应出现 4 个 provider（mimo / token0-glm / token0-ds / apikeyfan-ds）
+## ✅ 生效验证（2026-11-03 16:25，重启后实测）
+- ✅ **会话本身已跑在 apikeyfan-ds/deepseek-flash**（你在下拉里选中它 → 说明配置注册 + 密鑰解析都生效）
+- ✅ 四个 provider 用 `.env` 里的 key 各发一条最小请求，全部 HTTP 200：
+
+| provider | 模型 | 实测结果 |
+|---|---|---|
+| apikeyfan-ds | deepseek-flash | ✅ 200 |
+| token0-ds | deepseek-v4.1-flash | ✅ 200 |
+| token0-glm | glm-5.3-flash | ✅ 200 |
+| mimo | mimo-v2.6-flash | ✅ 200 |
+
+- ✅ desktop 的 agent-default-model 已被写成 apikeyfan-ds/deepseek-flash（app 记下的选择）
 - ⏳ 同一把 key 还有 deepseek-flash-economy、deepseek-v4-pro 未接入（等用户点名）
 
 # 🚨 事故与根因（2026-11-03 15:03-15:40）
@@ -6191,6 +6201,11 @@ DSH 改造
 - 两个 DS 的标签重命名，避免分不清：
   - token0-ds → 「DS-V4.1-Flash（token0 中转）」，模型名 DS-V4.1-Flash（token0）
   - apikeyfan-ds → 「DS-V4-1-Flash-1017（apikey.fan 中转）」，模型名 DS-V4-1-Flash-1017（apikey.fan）
+
+## ❗ 为什么「有两个 DS 模型」——不是两个中转站，是官方模型被列了两遍
+- bundle 里同时装了 `llm-deepseek-api-key` 和 `llm-deepseek-account` 两个插件
+- 两者都从 api.deepseek.com/models 拉模型（日志：各 loaded 2 model(s)）
+- 所以下拉里会出现成对的 DeepSeek 官方模型（API-key 模式 + 账号模式），同一个模型两个入口
 
 # 🌐 新机器环境事实（2026-11-03 迁移后）
 - ❗ DSH_HOME = C:\Users\16620\.dsh（不是旧机的 E:\DeepSeekHarness\workspace）
