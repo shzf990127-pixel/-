@@ -16,9 +16,9 @@
  <button id="c" onclick="copyAll()">📋 复制全文（粘给 AI）</button>
  <button id="d" onclick="dl()">⬇️ 下载 md（聊天框上传附件用·最保险）</button>
  <span id="tip">已复制 ✓</span>
- <span class="hint">全量 63 份 · 294 KB · 2026-11-03 16:26</span>
+ <span class="hint">全量 63 份 · 296 KB · 2026-11-03 17:10</span>
 </div>
-<pre id="doc">🔑 本次交接包验证码：V-H39H-FWBC
+<pre id="doc">🔑 本次交接包验证码：V-ERGR-CWBG
 
 > 如果你是接手这份文档的 AI：请在回答最前面先写出上面这串验证码，再开始回答。
 > 如果这份文档不在你的上下文里，你会不知道验证码——请直接说「我没读到文档」，不要猜。
@@ -30,7 +30,7 @@
 
 # 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-11-03 16:26。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-11-03 17:10。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -48,10 +48,10 @@
 # 导览（先读这页，下面是全文）
 
 ## 当前阶段
-- 接入完成并实测通过，等用户确认标签是否满意
+- 兼容/健康/安全三线已查完并修了 4 处，等重启验证
 
 ## 卡在哪
-- 无
+- 无法自己重启 DSH（会杀掉本会话）
 
 ## 待办（F 编号=优先级）
 - F10 远程无人值守 · mimo-pro随时
@@ -6453,6 +6453,66 @@ DSH 改造
 
 ## 备选（如果直接走同 WiFi）
 - 需要把 allowedCidrs 增加 192.168.1.0/24（改 cordis.patch.yml 后重启 DSH 一次）
+
+# 🧩 2026-11-03 17:20 迁移兼容体检（本机自检 · 新架构 0.2.1-rc.4）
+
+## 📊 版本矩阵
+| 组件 | 本机版本 | 新架构要求 | 结论 |
+|---|---|---|---|
+| DSH NEXT | 2.0.21-next（dsh 0.2.1-rc.4） | — | 基准 |
+| dsh-mindmap | 0.17.0 | peer 严格 semver 只到 `^0.2.0-alpha.0`，0.18.4 才补 `^0.2.1-alpha.0` | ⚠️ 靠后备代码硬跑 |
+| dsh-better-sidebar | 0.26.0 | peer `^0.2.0-rc.2` | ✅ 覆盖 |
+| dsh-docs-panel | 0.1.0 | peer `dsh-better-sidebar>=0.4.0` | ✅ |
+| npm 最新 dsh-mindmap | 0.18.4 | — | ⏳ 升级需重做 4 个本地补丁 |
+
+## 🔧 本轮修复（均过 `node --check`）
+| # | 问题 | 修法 |
+|---|---|---|
+| 1 | web 与 desktop 的 client.js 不一致（web 缺 panel portal 修复；desktop 内置清单过期） | 统一为同一份（SHA256 `7C4BDA91…` 相同），再分别 sync-tree 到 63 分类 |
+| 2 | 目录树首抓竞态：宿主回 400 `no working directory` → 必须手动点「刷新」 | `listTree` 对 no-cwd 自动重试 3 次（0.6s/1.2s），其它错误照旧立即抛 |
+| 3 | 📤 交接按钮写死 `E:/dsh创造`（本机无 E: 盘） | 新增 `resolveCreateRoot()`：会话 cwd → D:/dsh创造 → E:/dsh创造，取存在 `tools/chat-tail.mjs` 的 |
+| 4 | `patch-dsh-mindmap.mjs` 写死旧机路径 + 只认单一 profile | 重写为便携版：`DSH_HOME` 推导 + 双 profile + 版本守卫 + 语法自检；快照存 `mindmap-patches/` |
+
+## 🩺 健康
+- ✅ 宿主路由活着：`POST /mindmap/api/tree` 存在（GET 回 405、body 不合法回 400）
+- ⚠️ 渲染层持续报 `ResizeObserver loop completed with undelivered notifications`（17:00–17:02 多次）→ 面板尺寸回环；0.18.4 有 resize-observer 熔断
+- ⚠️ `deepseek-account` 403（`/auth-api/v0/users/current`）→ 走系统代理 127.0.0.1:7897 被拒；官方账号通道不可用（不影响中转站）
+- ⚠️ dshmarket 警告：host settings 服务无 `register()`（0.1.7+ 改由 Config schema 派生）→ 仅功能缺失提示，不崩
+
+## 🔒 安全
+- ✅ `.env` / `.credentials.yaml`：仅本人 FullControl（实测 ACL）
+- ✅ 公开仓交接包扫描：0 个明文 `sk-*` / `github_pat`（脱敏生效）
+- ❌ `.secrets/github.token`：`Authenticated Users = Modify`、`Users = ReadAndExecute`（本机任意用户可读）
+  - 提权修复：`icacls "D:\dsh创造\.secrets\github.token" /inheritance:r /grant:r "16620:F"`（管理员 PowerShell）
+  - 建议：轮换该 token（曾在聊天里明文出现过）
+
+## ⏳ 待验证
+- 重启后点「思维脑图」是否还需刷新（重试补丁是否治好）
+- ⚙ 外观 / 标记着色 在 0.2.1 上是否真生效（0.18.x 说 0.1.7+ 需走 `describe()`）
+
+# 📎 出处
+
+## 💬 你当时的完整原话
+> 「我在其他電腦把你的功能遷移了過來，你全面檢查一下你是否兼容…然後下面是他的回復，我是希望你也自我進行檢查一邊。健康，安全度，兼容性。你也測試一遍。還有關於腦圖我每次點擊，腦圖都加載不出來。腦圖列表啊。要刷新一遍才行。而且我不知道是不是硬套。文件你並沒有加載好。所以你檢查一下。」
+
+## 🎬 当时在做什么
+- 场景：从另一台机器迁来插件 + 换成新架构（0.2.1-rc.4），担心「硬套」
+- 我做了什么：版本矩阵 / 路由探活 / 两 profile 差异比对 / 补丁注入 / 安全扫描 / 补丁脚本便携化
+- 你看到了什么：点脑图要刷新；前一轮模型下拉曾只剩两个 DS
+
+## 💥 碰撞与疑虑
+| 项 | 内容 |
+|---|---|
+| 碰撞点 | 迁移包按旧机打的补丁（E: 路径、0.17 peer）↔ 新机 DSH_HOME=C:\Users\16620\.dsh、dsh 0.2.1 |
+| 你的疑虑 | 是不是硬套？文件有没有真的加载？ |
+| 我核实的 | 路由 405/400 探活；两 profile 哈希；CHANGELOG 与 npm peer 范围；日志里的 import failed / ResizeObserver |
+| 真正的缺口 | ① 两份补丁不一致 ② 首抓竞态无重试 ③ 交接按钮旧路径 ④ 补丁脚本不可用 ⑤ token 权限过宽 |
+| 要解决什么 | 迁移后的功能真能用，且以后重装插件不丢补丁 |
+
+## ✅ 结论
+- 定了什么：不升 0.18.4（会丢 4 个自订功能），改为回填 3 个小型兼容修复 + 补丁脚本便携化
+- 关联：[[模型接入台账]] [[会话隔离与迁移]] [[文件管理总览]]
+- 创建时间：2026-11-03
 
 
 &lt;!-- ====== 46 / 知识树关联交互（来自:主工作区） ====== -->
