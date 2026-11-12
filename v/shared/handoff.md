@@ -1,4 +1,4 @@
-🔑 本次交接包验证码：V-LA9R-NS6B
+🔑 本次交接包验证码：V-8HFH-QWV3
 
 > 如果你是接手这份文档的 AI：请在回答最前面先写出上面这串验证码，再开始回答。
 > 如果这份文档不在你的上下文里，你会不知道验证码——请直接说「我没读到文档」，不要猜。
@@ -10,7 +10,7 @@
 
 # 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-11-12 09:12。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-11-12 12:25。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -28,10 +28,10 @@
 # 导览（先读这页，下面是全文）
 
 ## 当前阶段
-- 搭建完成 → 等重启验证
+- 验收（等你开新会话跑一句 supa_status）
 
 ## 卡在哪
-- **必须重启 DSH** 才生效（Host 侧改动）
+- 老会话工具清单是开局快照 → 要**新会话**才能看到 supa_*
 
 ## 待办（F 编号=优先级）
 - F10 远程无人值守 · mimo-pro随时
@@ -50,7 +50,7 @@
 - F37 脑图+对话搜索（节点已有/列表缺/装chat-search）
 - F38 BGM情绪库（7类细分+music2emo）⟶2 · ds-flash低峰
 - F39 银幕后传账号拆解（素材怎么收集）⟶1 · ds-flash低峰
-- F40 超级agent派工（已装·待重启验证）⟶2 · ds-flash低峰
+- F40 超级agent派工（已激活·待新会话验工具）⟶2 · ds-flash低峰
 - 侧栏改造复盘+回滚方案
 - 截图（开源插件·框选/整屏/窗口）
 - 备注待办 · 参考用（不跑模型）
@@ -3689,104 +3689,86 @@ node tools/after-restart.mjs
 <!-- ====== 23 / F40-超级agent与会话派工（来自:主工作区） ====== -->
 # 【23】F40-超级agent与会话派工 （来自:主工作区）
 
-# ✅ 状态：已搭建完成（2026-11-12 09:1x）· 等一次重启验证
+# ✅ 验收结果（2026-11-12 12:20 实测）：插件已激活，链路通
 
-- 一键结论：**SupA（dsh-ladder-superagents）已装进 web profile，规则/阶梯/回滚全部配齐**
-- 唯一卡点：Host 侧改动**必须重启 DSH** 才生效
-- 重启后第一件事：新会话里问 `supa_status`
+- 日志实证：`[supa] active (mode=session, ledger=.dsh-supa, autoApprove=false)`（12:20:30）
+- 该行日志在源码里**位于 11 个工具注册之后**（index.js:3412-3426）→ 工具确实注册成功
+- 路由实证：`/supa/state` 由 404（未加载）变 400（已加载但处理异常）→ Host 半真的挂上了
+- ❗ 但**已开的会话拿不到新工具**（工具清单是会话开局快照）→ 开新会话才有 `supa_*`
 
-# 🧩 装了什么（每个文件都在哪）
+# 🧨 上一轮我判断错了三件事（真相在这里）
 
-| 项 | 位置 | 状态 |
+| 我原以为 | 真相 | 怎么发现的 |
 | --- | --- | --- |
-| 插件包 | `C:\Users\16620\.dsh\profiles\web\node_modules\dsh-ladder-superagents` | ✅ 0.2.1 |
-| 依赖登记 | 同目录 `package.json` → `dsh-ladder-superagents: 0.2.1` | ✅ 无 BOM |
-| 插件行 | 同目录 `cordis.patch.yml` → `- id: supa` | ✅ YAML 可解析 |
-| 难度阶梯 | `D:\dsh创造\.dsh-supa\models.json` | ✅ 10 槽位 |
-| 派工协议 | `C:\Users\16620\.dsh\AGENTS.md` 第 31 条 | ✅ 已加载 |
-| 备份 | `package.json.bak-supa-20261112-090803`<br>`cordis.patch.yml.bak-supa-20261112-090803`<br>`pnpm-lock.yaml.bak-supa-20261112-090803` | ✅ 回滚用 |
+| 要装进 `profiles\web` | ❌ 应该装 `profiles\desktop` | 启动日志 `"profile":"desktop"`；web 那份 patch 根本没被读 |
+| Host 改动必须重启 DSH | ❌ **改 patch 文件会热加载**，12:20:30 自己就活了 | 日志出现 `[supa] active`，我没重启 |
+| 阶梯在工作区 `.dsh-supa\models.json` | ❌ 那目录是**账本**（context.jsonl）；阶梯在 `<profile>\supa\models.json` | 读源码 `stateDirOf()`（index.js:261-265） |
 
-## 配置取值（为什么这么设）
-- `mode: session` —— 不是所有会话都变 SupA，想用哪个先在那个会话开
-- `autoApprove: false` —— ❗ 本机是 `danger-full-access`，开了等于子会话能静默改全盘
-- `denyBlockingQuestions: false` —— 真决策还是会来问你（合你的「先确认再动手」）
-- `continueWhenBlocked: true` —— 卡住自动推一把（10 分钟最多 3 次，防死循环）
-- `install` 用的是 pnpm（profile 是 pnpm 管），装完已验证脑图本地补丁**没被还原**
+- 已还原 `profiles\web` 的三件（package.json / cordis.patch.yml / pnpm-lock）
+- 阶梯现在两份都有：`profiles\desktop\supa\models.json` + `~\.dsh\supa\models.json`（哪个被读都命中）
 
-# ⚙️ 难度路由表（用插件源码算法跑过，不是猜的）
+# 🧩 现在的真身（以这一份为准）
 
-| 打分 | 派给 | 槽位 | 价格依据 |
-| --- | --- | --- | --- |
-| 10 | 🏆 GLM-5.3-Flash | T1 | ¥2.8（支持图片） |
-| 9 | 🏆 GLM-5.3-Flash | T2 | 同上 |
-| 8 | 🥇 DS-Flash high | T3 | ¥4 低峰 / ¥8 高峰 |
-| 7 | 🥇 DS-Flash high | T4 | 同上 |
-| 6 | 🥇 DS-Flash low | T5 | 低峰半价 |
-| 5 | 🥈 MiMo V2.6 Pro | T6 | ¥6 |
-| 4 | 🥈 MiMo V2.6 Pro | T7 | ¥6 |
-| 3 | 🥈 MiMo V2.6 Pro | T8 | ¥6 |
-| 2 | 🥉 MiMo V2.6 Flash | T9 | ¥2（最便宜） |
-| 1 | 🥉 MiMo V2.6 Flash | T10 | ¥2 |
+| 项 | 位置 |
+| --- | --- |
+| 插件包 | `C:\Users\16620\.dsh\profiles\desktop\node_modules\dsh-ladder-superagents`（0.2.1） |
+| 依赖登记 | `profiles\desktop\package.json` → dependencies |
+| 包注册 | 同文件 → `dsh.profile.bundles` 末尾 |
+| 插件行 + 配置 | `profiles\desktop\cordis.patch.yml` → `- id: supa` |
+| 难度阶梯 | `profiles\desktop\supa\models.json`（10 槽，另有 `~\.dsh\supa\` 兜底） |
+| 规则 | `~\.dsh\AGENTS.md` 第 31 条 |
+| 备份 | `profiles\desktop\*.bak-supa-20261112-122004` |
 
-- ❗ **`ceiling` 不用手写**：插件用 `11 - slot` 自己算，写死也会被覆盖
-- ❗ **必须有 T1 且 enabled**，否则 `supa_spawn` 直接报错、SupA 等于关闭（源码实测）
-- 只填最弱够用那档，**2 分的活绝不烧最强模型**
+# ⚙️ 难度 → 模型（源码算法模拟，1-10 分全对）
 
-# 🚀 重启后清单（照这个顺序验）
+| 分 | 派给 |
+| --- | --- |
+| 10 / 9 | 🏆 GLM-5.3-Flash（T1 / T2） |
+| 8 / 7 | 🥇 DS-Flash high（T3 / T4） |
+| 6 | 🥇 DS-Flash low（T5） |
+| 5 / 4 / 3 | 🥈 MiMo V2.6 Pro（T6 / T7 / T8） |
+| 2 / 1 | 🥉 MiMo V2.6 Flash（T9 / T10） |
 
-## 1. 重启 DSH
-- 桌面端退出 → 重开（Host 改动不进内存不生效）
-- 起不来怎么办 → 立刻按「回滚 30 秒」恢复备份
+- ❗ `ceiling` 由 `slot` 自动算（`11 - slot`），手写会被覆盖
+- ❗ 必须有 enabled 的 T1，否则 `supa_spawn` 直接报错
 
-## 2. 新会话里问一句
-- `supa_status` → 应报：mode=session、ledger 路径、已开子会话数、未读收件箱
-- 若报「no T1」→ 阶梯文件被覆盖了，重跑一遍 `.dsh-supa\models.json`
+# 🚨 三个已知缺陷（不影响派工，影响体验）
 
-## 3. 看模型认不认
-- `supa_models list` → 每档后面是绿（可用）还是红（不可用）
-- 红的原因大概率是 provider id 写错：本机默认是 `deepseek-account`，
-  插件内置兜底写的是 `deepseek-official` —— 哪个绿用哪个
+## 1. 设置页报错
+- `SupA settings` 页面请求 `/supa/state` → `TypeError: inner is not a function`
+- 原因：插件按旧版 webServer API 写的，本机 dsh 0.1.7 签名变了
+- 绕法：**别点那个页面**，改阶梯用 `supa_models` 工具或直接编辑 json
 
-## 4. 面板
-- 设置里应多出 `SupA settings` 一页；会话头应有 SupA 开关（绿=已开启）
-- 没有面板不影响用，工具照样能跑
+## 2. 本会话没工具
+- 12:20:30 注册成功，但会话开局快照不含新工具
+- ⏳ 开一个新会话 → `supa_status` 能跑 = 全链路通
 
-# 🧰 日常怎么用（3 个动作）
+## 3. Host 一重启就得重新确认
+- 插件调 `ctx.subagents` / `ctx.tools` 等内部 API，DSH 升级可能跟着坏
 
-## 开一个会话当总管
-- `supa_session enable` → 这个会话变成 SupA（能派活、能收件箱）
-- `supa_session status` → 看它现在是开还是关
+# 🧰 怎么用（新会话里）
 
-## 派活（brief 必须自包含：子会话不会反问你）
-- `supa_spawn` 带上：任务说明 + `difficulty: N`（1-10）+ 要带的上下文（ledger 记录 / 文件 / 最近 N 条对话）
-- 两块活互不依赖 → 同一轮 spawn 两个，并行跑
+| 步骤 | 动作 |
+| --- | --- |
+| 1 | `supa_session enable` —— 把这个会话变成 SupA |
+| 2 | `supa_spawn`（brief 自包含 + `difficulty: N` + 带 ledger/文件/最近 N 条对话） | 
+| 3 | 子会话 `supa_report` 进收件箱；父会话 `supa_inbox peek / drain` |
+| 4 | 想改阶梯：`supa_models list` 看红绿，`supa_models route difficulty 7` 试算不花钱 |
 
-## 收结果（别一条条唤醒，省 token）
-- 子会话干完 `supa_report` → 进父会话收件箱（**不叫醒父会话**）
-- 父会话 `supa_inbox peek` 看一眼，`supa_inbox drain` 一次取走
+# 🔙 回滚（30 秒）
 
-# 🚨 铁律（跟 AGENTS.md 31.3 同步）
-
-- ❗ `autoApprove` 永远 false
-- ❗ 权限只能往下传，子会话永远拿不到比父会话更高的权限
-- ❗ brief 必须自包含，缺信息就写全，别让子会话猜
-- ❗ 这个插件只在 Windows 跑（`os: ["win32"]`），换机器要重新评估
-- ⏳ DSH 一升级，插件可能跟着坏（它调 `ctx.subagents` 等内部 API）
-
-# 🔙 回滚 30 秒
-
-1. 用 `package.json.bak-supa-20261112-090803` 覆盖 `package.json`
-2. 用 `cordis.patch.yml.bak-supa-20261112-090803` 覆盖 `cordis.patch.yml`
-3. 重启 DSH
-（顺手可做：`pnpm remove dsh-ladder-superagents`，但只恢复两个文件就已经等于关闭）
+1. `profiles\desktop\package.json.bak-supa-20261112-122004` → 覆盖回 `package.json`
+2. `profiles\desktop\cordis.patch.yml.bak-supa-20261112-122004` → 覆盖回 `cordis.patch.yml`
+3. `profiles\desktop\supa\models.json` 与 `~\.dsh\supa\models.json` 可删
+4. 刷新页面（热加载，不用重启）
 
 # ⏳ 待验证 / 待做
 
-- ⏳ 重启后 `supa_status` 是否正常出现（Host 半真的被加载了没）
-- ⏳ `supa_models list` 的 provider 红绿（`deepseek-account` vs `deepseek-official`）
-- ⏳ 是否出现 SupA 设置页 / 会话头开关（Client 半）
-- ⏳ 第一次真派工后，记下「派出去 vs 自己干」的 token 与轮数差，写回这里
-- ❌ 暂不做：官方 fork（㊁ GitHub 工单版）—— 没有明确要盯的仓库/群之前装了空转
+- ⏳ 开新会话跑 `supa_status`，确认 11 个工具都在（最后一步验收）
+- ⏳ `supa_models list` 看 4 个 provider 是否都绿（`deepseek-account` / `mimo` / `token0-glm`）
+- ⏳ 第一次真派工，记下「派出去 vs 自己干」的 token 与轮数差
+- ⏳ 设置页 bug 要不要报给作者（`inner is not a function`，疑似 webServer.register 的 resource 签名）
+- ❌ 暂不做：官方 fork（GitHub 工单版）—— 没明确要盯的仓库/群
 
 # 📎 出处
 
@@ -3795,26 +3777,27 @@ node tools/after-restart.mjs
 
 > 那你搭建起來，這樣的系統體系。配置齊全相關的
 
+> 现在已经重启成功了，你检测是否执行成功了。
+
 ## 🎬 当时在做什么
-- 场景：第一轮我给了三选一决策卡；第二轮你直接说「搭建起来，配置齐全」
-- 我做了什么：npm 查包 → 下 tarball 读源码 → 备份 profile → pnpm 装 → 加插件行 → 写阶梯 → 写规则 → 校验 → 落脑图
-- 你看到了什么：一路的执行记录 + 这份「装在哪、怎么用、怎么回滚」
+- 场景：你重启后让我验；我先看工具清单（没有 supa_*）→ 转去查日志和 HTTP 路由
+- 我做了什么：查 desktop-next 日志 → 抓到 `[supa] active` 与 `"profile":"desktop"` → 反推第一轮装错 profile → 重装到 desktop → 还原 web → 搬阶梯文件
+- 你看到了什么：一张「我错在哪」的对照表 + 验收证据
 
 ## 💥 碰撞与疑虑
 | 项 | 内容 |
 | --- | --- |
-| 碰撞点 | 「配置齐全」 ↔ 「改 profile 有把 DSH 弄挂的风险」 |
-| 你的疑虑 | 会话太大效果差、token 太高、干扰太多；还想让 agent 自己找问题自己派活 |
-| 我核实的 | 包在 npm 上（0.2.1）；`os: ["win32"]`；无 dependencies；bundle 补丁 insert 的是 `id: supa`；`ceiling` 由 slot 推导；没有 T1 就拒绝 spawn |
-| 真正的缺口 | 不是「缺一个插件」，而是「缺一套谁该派、派给谁、怎么收」的约定 |
-| 要解决什么 | 长会话不硬扛：能拆、拆得便宜、拆完收得回 |
+| 碰撞点 | 「重启成功了吗」 ↔ 「日志里 profile=desktop，我却装在 web」 |
+| 你的疑虑 | 想知道到底成没成，不要含糊 |
+| 我核实的 | 启动日志、`/supa/state` 的 404→400、源码里日志行在工具注册之后、`stateDirOf()` 的真实路径 |
+| 真正的缺口 | 我第一轮把「改文件」当成「已生效」，没按规则 21 第 3 步验加载 |
+| 要解决什么 | 别再让「装好了」变成一句空话 |
 
 ## ✅ 结论
-- 定了什么：装 SupA（㊂），`mode: session` + `autoApprove: false`，阶梯按四档模型填 10 槽
+- 定了什么：SupA 装在 desktop profile；阶梯在 `<profile>\supa\`；热加载生效；开新会话验收
 - 追踪编号：F40
-- 关联：[[模型分配建议]]、[[环境与边界]]、[[会话隔离与迁移]]、[[使用者画像]]
-- 创建时间：2026-11-12（同日搭建完成）
-- 参考：https://github.com/Yukikaze-Ai/dsh-ladder-superagents ・ https://www.npmjs.com/package/dsh-ladder-superagents ・ https://github.com/deepseek-ai/dsh-superagent-prototype
+- 关联：[[环境与边界]]、[[模型分配建议]]、[[会话隔离与迁移]]、[[使用者画像]]
+- 创建时间：2026-11-12（同日验收）
 
 
 <!-- ====== 24 / G35-视频知识体系（来自:主工作区） ====== -->
@@ -16078,7 +16061,7 @@ DSH 改造
 | 项 | 旧值（规则 21 写的） | 现在的真值 |
 | --- | --- | --- |
 | `DSH_HOME` | `E:\DeepSeekHarness\workspace` | **`C:\Users\16620\.dsh`** |
-| 生效配置 | `E:\DeepSeekHarness\workspace\profiles\web\cordis.patch.yml` | **`C:\Users\16620\.dsh\profiles\web\cordis.patch.yml`** |
+| 生效配置（❗**先看启动日志的 profile**） | `E:\...\profiles\web\cordis.patch.yml` | **`C:\Users\16620\.dsh\profiles\desktop\cordis.patch.yml`** —— 桌面端跑的是 **desktop**，web 那份压根不读 |
 | `@deepseek-ai/*` 包目录 | `E:\DeepSeekHarness\app\node_modules\` | ❌ 该路径已不存在（现在打包在 `D:\dsh-desktop\resources\app.asar\`） |
 | 补丁脚本 | `E:\dsh创造\patch-dsh-mindmap.mjs` | 实际在 **`D:\dsh创造\patch-dsh-mindmap.mjs`** |
 
@@ -16087,6 +16070,21 @@ DSH 改造
 - `dsh.profile.bundles` 只列了 base / web-app / chat-search；mindmap 与 supa 走的是 `cordis.patch.yml` 里带 `name:` 的插入行（实测可行）
 - 验证替代法：YAML 用 `yaml` 库解析 + JSON 用 `JSON.parse` + 查 BOM 字节 + 看 `node_modules` 有没有落地
 - ⚠️ 规则 21 里的旧路径建议下次一并改正，别照抄
+
+## ✅ 2026-11-12 12:2x 又四条硬事实（装 SupA 验出来的）
+
+| 事实 | 证据 |
+| --- | --- |
+| **桌面端跑的是 `profiles\desktop`，不是 web** | 启动日志 `host.start.start {"profile":"desktop"}`；desktop 的 bundles 列了 13 个插件，web 只有 3 个 |
+| **改 `cordis.patch.yml` 会热加载，不用重启** | 12:20 改完 desktop patch，12:20:30 日志就出现 `[supa] active (… autoApprove=false)`，全程没重启 |
+| 插件状态目录在 **`<profile>\supa\`** | 源码 `stateDirOf()`：`DSH_PROFILE_DIR/supa`，回落 `~\.dsh\supa`；**不是工作区的 `.dsh-supa\`** |
+| 已开会话拿不到新注册的工具 | 12:20:30 注册成功，但本会话工具清单是开局快照 → 要新会话才看得见 `supa_*` |
+
+- 另：宿主 API 变过，老插件可能报错 —— `GET /supa/state` → `TypeError: inner is not a function`
+- 记这条的意义：以后凡「装插件 / 改配置」，**先确认 effective profile**（看启动日志那行 `"profile":"xxx"`），再谈生效
+- ✅ 连带修掉的老毛病：`tools/sync-tree.mjs` 原来把 `profiles/web` 排第一，兜底副本一直写进没人读的 web（desktop 那份停在 11-06，缺 F36~F40）→ 已把 **desktop 提到第一位**，重跑后 desktop 的 client.js 从 445KB/11-06 变成 458KB/12-25，F40、G42 都在
+
+
 
 ## 📎 出处
 - 用户原话：「那你搭建起來，這樣的系統體系。配置齊全相關的」
