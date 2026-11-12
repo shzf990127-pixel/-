@@ -1,4 +1,4 @@
-🔑 本次交接包验证码：V-37LB-FVBS
+🔑 本次交接包验证码：V-LA9R-NS6B
 
 > 如果你是接手这份文档的 AI：请在回答最前面先写出上面这串验证码，再开始回答。
 > 如果这份文档不在你的上下文里，你会不知道验证码——请直接说「我没读到文档」，不要猜。
@@ -10,7 +10,7 @@
 
 # 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-11-12 00:29。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-11-12 09:12。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -28,10 +28,10 @@
 # 导览（先读这页，下面是全文）
 
 ## 当前阶段
-- 需求判定（还没动手装，等你三选一）
+- 搭建完成 → 等重启验证
 
 ## 卡在哪
-- 你的选择；选 3 还缺「盯哪个仓库/群」
+- **必须重启 DSH** 才生效（Host 侧改动）
 
 ## 待办（F 编号=优先级）
 - F10 远程无人值守 · mimo-pro随时
@@ -50,7 +50,7 @@
 - F37 脑图+对话搜索（节点已有/列表缺/装chat-search）
 - F38 BGM情绪库（7类细分+music2emo）⟶2 · ds-flash低峰
 - F39 银幕后传账号拆解（素材怎么收集）⟶1 · ds-flash低峰
-- F40 超级agent派工（三选一待拍板）⟶2 · ds-flash低峰
+- F40 超级agent派工（已装·待重启验证）⟶2 · ds-flash低峰
 - 侧栏改造复盘+回滚方案
 - 截图（开源插件·框选/整屏/窗口）
 - 备注待办 · 参考用（不跑模型）
@@ -3689,153 +3689,132 @@ node tools/after-restart.mjs
 <!-- ====== 23 / F40-超级agent与会话派工（来自:主工作区） ====== -->
 # 【23】F40-超级agent与会话派工 （来自:主工作区）
 
-# ❗ 一句话结论
+# ✅ 状态：已搭建完成（2026-11-12 09:1x）· 等一次重启验证
 
-- 能装，而且它本身就是 DSH 的插件包（bundle），不是外挂 —— 但它**不是「多会话管理面板」，是「派工 + 省钱路由」**
-- 你现在最痛的问题（会话越长越乱、token 爆），**不装任何东西今天就能解**：DSH 原生 `subagent` / `workflow`
-- ❗ 我的建议：先用原生的（零风险，立刻见效）→ 不够再上 SupA
+- 一键结论：**SupA（dsh-ladder-superagents）已装进 web profile，规则/阶梯/回滚全部配齐**
+- 唯一卡点：Host 侧改动**必须重启 DSH** 才生效
+- 重启后第一件事：新会话里问 `supa_status`
 
-# ❗ 你问的 7 个问题（逐条）
+# 🧩 装了什么（每个文件都在哪）
 
-## 1. 「最近的 super agent 很火，ds 的」
-- 指的是 DeepSeek 那篇《Exploring Super-agent Design》+ 官方原型 `deepseek-ai/dsh-superagent-prototype`
-- 架构叫 **Router + Worker 双层**：一个 Router 判定/派活，多个 Worker 各在自己的会话和目录里干
-- ❗ 官方自己写明：**研究原型，非官方产品，别直接上生产**
+| 项 | 位置 | 状态 |
+| --- | --- | --- |
+| 插件包 | `C:\Users\16620\.dsh\profiles\web\node_modules\dsh-ladder-superagents` | ✅ 0.2.1 |
+| 依赖登记 | 同目录 `package.json` → `dsh-ladder-superagents: 0.2.1` | ✅ 无 BOM |
+| 插件行 | 同目录 `cordis.patch.yml` → `- id: supa` | ✅ YAML 可解析 |
+| 难度阶梯 | `D:\dsh创造\.dsh-supa\models.json` | ✅ 10 槽位 |
+| 派工协议 | `C:\Users\16620\.dsh\AGENTS.md` 第 31 条 | ✅ 已加载 |
+| 备份 | `package.json.bak-supa-20261112-090803`<br>`cordis.patch.yml.bak-supa-20261112-090803`<br>`pnpm-lock.yaml.bak-supa-20261112-090803` | ✅ 回滚用 |
 
-## 2. 「你可以安装吗」
-- ✅ 可以，三条路（见下面决策卡）
-- ⚠️ 但它是**改 profile 的 bundle**：会往 `cordis.patch.yml` 插插件行 → 装前必须备份
+## 配置取值（为什么这么设）
+- `mode: session` —— 不是所有会话都变 SupA，想用哪个先在那个会话开
+- `autoApprove: false` —— ❗ 本机是 `danger-full-access`，开了等于子会话能静默改全盘
+- `denyBlockingQuestions: false` —— 真决策还是会来问你（合你的「先确认再动手」）
+- `continueWhenBlocked: true` —— 卡住自动推一把（10 分钟最多 3 次，防死循环）
+- `install` 用的是 pnpm（profile 是 pnpm 管），装完已验证脑图本地补丁**没被还原**
 
-## 3. 「可以应用在 DSH 上面吗」
-- ✅ 它就是给 DSH 写的：`package.json` 声明 `dsh.bundle.patch`，Host 半 + Client 半一起激活
-- 装完：工具出现在每个会话、设置面板多一页、系统提示多一段章程
+# ⚙️ 难度路由表（用插件源码算法跑过，不是猜的）
 
-## 4. 「管理我不同工作区的多个会话」
-- 读：✅ 能。`orchestrator_session_list / read / search` 直接读磁盘上的会话记录，**跨 profile 都能看**
-- 活：✅ 能（同一 DSH 进程内）。`session_live` 看谁在忙，`session_message` 像用户本人那样发一句话进去，`session_stop` 停掉当前回合
-- 控：❌ **不能跨进程**。文档原话：跨进程只能读，不能控
-
-## 5. 「可以把任务在不同会话跑」
-- ✅ 两种玩法
-  - 派给**子会话**（SupA 的 `supa_spawn`）：子会话独立上下文、独立模型档，父会话只收摘要
-  - 派给**外部 CLI**（Codex / Claude Code）：`orchestrator_agent_dispatch` 起一个进程跑，不占会话
-  - 派给**另一个已有会话**：`session_message` 发一句话进去，等于你在那个会话里亲手打的
-
-## 6. 「确保不用再一个会话过大、太多轮、干扰太多」
-- ✅ 这正是设计的核心，机制是**卡上限**
-  - 列表只给摘要（标题/cwd/两个时间戳），不给全文
-  - 读一次最多 200 轮，每轮最多 4000 字
-  - 派活时上下文包上限 24KB / 最多 6 个文件 / 对话最多 30 条
-  - 子进程输出最多 20 万字符
-- ❗ 关键：**子会话的垃圾不进父会话**，父会话只看到结论
-
-## 7. 「無法自主找問題，並且佈置解決問題」
-- ✅ 这条 SupA 做得最实
-  - `supa_report`：子会话干完直接把结果塞进父会话的收件箱（**不叫醒父会话**，省一次全量上下文）
-  - `supa_inbox drain`：父会话有空了才一次性取走
-  - 回合结束状态是 `blocked` → 自动「别等，继续想办法」推一把（10 分钟最多 3 次，防死循环）
-- ⏳ 但「自己发现问题」仍是弱的：它只会处理**你或规则给它的**信号，不会凭空巡检你的机器
-
-# 🌳 三个候选（决策卡）
-
-## 🥇 选项 0 · DSH 原生（不装东西）
-- 用什么：`subagent`（全新子会话）/ `subagent_fork`（继承当前对话）/ `workflow`（脚本批量扇出）
-- 谁在用：本机 DSH 已经内置，我这轮就能调用
-- 优点：零安装、零配置、不碰 `cordis.patch.yml`、升级 DSH 不会坏
-- 缺点：子会话不能互相对话；没有「模型难度路由」；没有常驻收件箱；跨**工作区**（不同 profile）看不到
-- ❗ 适合：**「这一轮太长了，拆出去干」** —— 你现在 80% 的痛就是这个
-
-## 🥈 选项 A · dsh-ladder-superagents（SupA）
-- 装法：`git clone` → 插件管理器「从目录安装」
-- 它多给的东西
-  - `supa_spawn`：派子会话，带**上下文包**（你可以精确选：ledger 记录 / 文件 / 最近 N 条对话）
-  - 难度路由阶梯：任务打分 1-10 → **只选够用的最弱模型**（正好对上你的四档模型规则！）
-  - 共享账本 `.dsh-supa/context.jsonl`：所有会话可读可写，系统提示里注入摘要
-  - 权限逐级下放：`workspace` / `full`，子会话**永远拿不到超过父会话的权限**
-  - 回合 blocked 自动推、有未完成待办自动续
-- 风险
-  - 0.1 版 **Windows only**（你正好是 Windows）
-  - 10 个 CLI 驱动只验证过 `codex`
-  - `autoApprove: true` = 所有审批全放行，**包括沙箱提权** → 别开
-- ❗ 适合：**「我不想自己挑模型、不想自己盯进度」**
-
-## 🥉 选项 B · @vfvrpq/dsh-superagent（官方原型的 fork）
-- 装法：`npm i @vfvrpq/dsh-superagent`，或让 agent 读 `SETUP.md` 陪你装
-- 它多给的东西
-  - GitHub 工单驱动：有人 @ 它 → 自己开单 → 自己干活 → 回话给 PR
-  - IM 桥：飞书 / 钉钉（Stream 免公网）/ 企业微信
-  - 网页面板：待办工单、要人处理的、24 小时流量
-  - 会话总线：**读全机所有会话** + 给活会话发消息/停
-- 风险
-  - 已知 bug 4 条（多实例健康记录串行、计数器按类型算、空闲长连接不重建、PR 轮询用裸编号）
-  - 装起来步骤多，要 GitHub token、要面板、要配仓库
-- ❗ 适合：**「我要它常驻盯 GitHub/飞书，有人提需求它自己开工」**
-
-## 选项 C · 官方源码 deepseek-ai/dsh-superagent-prototype
-- 只有源码，没有 npm 包；跟着 `SETUP.md` 由 agent 帮着装
-- 单仓库、单实例；比 fork 少多仓库/多 IM 实例
-- ❗ 除非你想读代码/改代码，否则选 B
-
-# ⚖️ 对比（按你的痛排序）
-
-| 你的痛点 | 原生 | SupA | 官方fork |
+| 打分 | 派给 | 槽位 | 价格依据 |
 | --- | --- | --- | --- |
-| 会话太长 token 爆 | ✅ | ✅✅ | ✅ |
-| 任务派到别的会话跑 | ✅ 子会话 | ✅ 子会话+上下文包 | ✅ 发消息给活会话 |
-| 管不同工作区的多会话 | ❌ | ❌ 同 profile | ✅ 跨 profile 可读 |
-| 自主找问题+布置 | ❌ | ✅ 收件箱/自动推 | ✅ 工单 |
-| 自动按难度选便宜模型 | ❌ | ✅ 阶梯路由 | ❌ |
-| 零安装风险 | ✅ | ⚠️ | ⚠️⚠️ |
-| 常驻后台盯外部平台 | ❌ | ❌ | ✅ GitHub/飞书/钉钉 |
+| 10 | 🏆 GLM-5.3-Flash | T1 | ¥2.8（支持图片） |
+| 9 | 🏆 GLM-5.3-Flash | T2 | 同上 |
+| 8 | 🥇 DS-Flash high | T3 | ¥4 低峰 / ¥8 高峰 |
+| 7 | 🥇 DS-Flash high | T4 | 同上 |
+| 6 | 🥇 DS-Flash low | T5 | 低峰半价 |
+| 5 | 🥈 MiMo V2.6 Pro | T6 | ¥6 |
+| 4 | 🥈 MiMo V2.6 Pro | T7 | ¥6 |
+| 3 | 🥈 MiMo V2.6 Pro | T8 | ¥6 |
+| 2 | 🥉 MiMo V2.6 Flash | T9 | ¥2（最便宜） |
+| 1 | 🥉 MiMo V2.6 Flash | T10 | ¥2 |
 
-# 🚨 装之前必须知道的坑（4 条）
+- ❗ **`ceiling` 不用手写**：插件用 `11 - slot` 自己算，写死也会被覆盖
+- ❗ **必须有 T1 且 enabled**，否则 `supa_spawn` 直接报错、SupA 等于关闭（源码实测）
+- 只填最弱够用那档，**2 分的活绝不烧最强模型**
 
-## ⏳ 1. 会覆盖本地脑图补丁
-- 本机 `dsh-mindmap` 有本地补丁（Alt+滚轮缩放、⚙ 外观、六色着色）
-- 新 bundle 装完 pnpm 可能还原 → 必须重跑 `node "E:\dsh创造\patch-dsh-mindmap.mjs"`
+# 🚀 重启后清单（照这个顺序验）
 
-## ⏳ 2. 会改 cordis.patch.yml
-- 现在这份里有 LLM 路由（mimo/token0/apikey.fan）+ 密钥引用，改坏 = 所有模型全掉
-- 装前 `Copy-Item cordis.patch.yml cordis.patch.yml.bak-supa`
+## 1. 重启 DSH
+- 桌面端退出 → 重开（Host 改动不进内存不生效）
+- 起不来怎么办 → 立刻按「回滚 30 秒」恢复备份
 
-## ⏳ 3. 权限组合危险
-- 你现在这个会话是 `danger-full-access` + 审批「never」
-- 再叠一个 `autoApprove: true` 的 SupA = **任何子会话都能无声改全盘**
+## 2. 新会话里问一句
+- `supa_status` → 应报：mode=session、ledger 路径、已开子会话数、未读收件箱
+- 若报「no T1」→ 阶梯文件被覆盖了，重跑一遍 `.dsh-supa\models.json`
 
-## ⏳ 4. 升级 DSH 可能坏
-- 两者都调 DSH 内部 API（SessionController / ctx.subagents），DSH 一升级大概率要跟着修
+## 3. 看模型认不认
+- `supa_models list` → 每档后面是绿（可用）还是红（不可用）
+- 红的原因大概率是 provider id 写错：本机默认是 `deepseek-account`，
+  插件内置兜底写的是 `deepseek-official` —— 哪个绿用哪个
 
-# ⏳ 待你拍板（三选一）
+## 4. 面板
+- 设置里应多出 `SupA settings` 一页；会话头应有 SupA 开关（绿=已开启）
+- 没有面板不影响用，工具照样能跑
 
-- ⏳ 选 1：**先用原生** —— 我现在就演示一次「把一个任务派给子会话」，你看 token 和效果，不满意再谈装
-- ⏳ 选 2：**装 SupA** —— 我按 SETUP 走，先备份再装，装完先只在一个会话开（`mode: session`）
-- ⏳ 选 3：**装官方 fork** —— 但先回答我：你要它盯的是 GitHub 仓库，还是飞书/钉钉群？没有明确来源，装了也是空转
+# 🧰 日常怎么用（3 个动作）
+
+## 开一个会话当总管
+- `supa_session enable` → 这个会话变成 SupA（能派活、能收件箱）
+- `supa_session status` → 看它现在是开还是关
+
+## 派活（brief 必须自包含：子会话不会反问你）
+- `supa_spawn` 带上：任务说明 + `difficulty: N`（1-10）+ 要带的上下文（ledger 记录 / 文件 / 最近 N 条对话）
+- 两块活互不依赖 → 同一轮 spawn 两个，并行跑
+
+## 收结果（别一条条唤醒，省 token）
+- 子会话干完 `supa_report` → 进父会话收件箱（**不叫醒父会话**）
+- 父会话 `supa_inbox peek` 看一眼，`supa_inbox drain` 一次取走
+
+# 🚨 铁律（跟 AGENTS.md 31.3 同步）
+
+- ❗ `autoApprove` 永远 false
+- ❗ 权限只能往下传，子会话永远拿不到比父会话更高的权限
+- ❗ brief 必须自包含，缺信息就写全，别让子会话猜
+- ❗ 这个插件只在 Windows 跑（`os: ["win32"]`），换机器要重新评估
+- ⏳ DSH 一升级，插件可能跟着坏（它调 `ctx.subagents` 等内部 API）
+
+# 🔙 回滚 30 秒
+
+1. 用 `package.json.bak-supa-20261112-090803` 覆盖 `package.json`
+2. 用 `cordis.patch.yml.bak-supa-20261112-090803` 覆盖 `cordis.patch.yml`
+3. 重启 DSH
+（顺手可做：`pnpm remove dsh-ladder-superagents`，但只恢复两个文件就已经等于关闭）
+
+# ⏳ 待验证 / 待做
+
+- ⏳ 重启后 `supa_status` 是否正常出现（Host 半真的被加载了没）
+- ⏳ `supa_models list` 的 provider 红绿（`deepseek-account` vs `deepseek-official`）
+- ⏳ 是否出现 SupA 设置页 / 会话头开关（Client 半）
+- ⏳ 第一次真派工后，记下「派出去 vs 自己干」的 token 与轮数差，写回这里
+- ❌ 暂不做：官方 fork（㊁ GitHub 工单版）—— 没有明确要盯的仓库/群之前装了空转
 
 # 📎 出处
 
 ## 💬 你当时的完整原话
 > 最近的super agent很火，ds的，你可以安裝嗎？可以應用在DSH上面嗎？這樣的超級agent管理我不同工作區的多個會話？可以把任務在不同的會話跑？這樣確保不用再一個會話過大？太多輪，導致執行效果太多token，干擾因素太多？而且無法自主找問題，并且佈置解決問題？
 
+> 那你搭建起來，這樣的系統體系。配置齊全相關的
+
 ## 🎬 当时在做什么
-- 场景：你在问「能不能把长会话拆开、让 agent 自己去派活」
-- 我做了什么：查了 DSH 生态 + 三个仓库文档 + 本机已装插件
-- 你看到了什么：一个决策卡 + 4 条装前风险
+- 场景：第一轮我给了三选一决策卡；第二轮你直接说「搭建起来，配置齐全」
+- 我做了什么：npm 查包 → 下 tarball 读源码 → 备份 profile → pnpm 装 → 加插件行 → 写阶梯 → 写规则 → 校验 → 落脑图
+- 你看到了什么：一路的执行记录 + 这份「装在哪、怎么用、怎么回滚」
 
 ## 💥 碰撞与疑虑
 | 项 | 内容 |
 | --- | --- |
-| 碰撞点 | 「想装超级 agent」 ↔ 「装了就改 profile、可能覆盖本地补丁」 |
-| 你的疑虑 | 会话越大效果越差、token 越多、干扰越多 |
-| 我核实的 | DSH_HOME 已变 `C:\Users\16620\.dsh`；web profile 只装了 `dsh-chat-search`、`dsh-mindmap`；没装任何 superagent |
-| 真正的缺口 | 「把活派出去、只收回摘要」这个能力，原生就有；你缺的是**知道它存在** |
-| 要解决什么 | 长会话不再一条道走到黑 |
+| 碰撞点 | 「配置齐全」 ↔ 「改 profile 有把 DSH 弄挂的风险」 |
+| 你的疑虑 | 会话太大效果差、token 太高、干扰太多；还想让 agent 自己找问题自己派活 |
+| 我核实的 | 包在 npm 上（0.2.1）；`os: ["win32"]`；无 dependencies；bundle 补丁 insert 的是 `id: supa`；`ceiling` 由 slot 推导；没有 T1 就拒绝 spawn |
+| 真正的缺口 | 不是「缺一个插件」，而是「缺一套谁该派、派给谁、怎么收」的约定 |
+| 要解决什么 | 长会话不硬扛：能拆、拆得便宜、拆完收得回 |
 
 ## ✅ 结论
-- 定了什么：还没定，等你三选一
+- 定了什么：装 SupA（㊂），`mode: session` + `autoApprove: false`，阶梯按四档模型填 10 槽
 - 追踪编号：F40
-- 关联：[[使用者画像]]、[[模型分配建议]]、[[环境与边界]]
-- 创建时间：2026-11-12
-- 参考：https://www.npmjs.com/package/@vfvrpq/dsh-superagent ・ https://github.com/Yukikaze-Ai/dsh-ladder-superagents ・ https://github.com/deepseek-ai/dsh-superagent-prototype
+- 关联：[[模型分配建议]]、[[环境与边界]]、[[会话隔离与迁移]]、[[使用者画像]]
+- 创建时间：2026-11-12（同日搭建完成）
+- 参考：https://github.com/Yukikaze-Ai/dsh-ladder-superagents ・ https://www.npmjs.com/package/dsh-ladder-superagents ・ https://github.com/deepseek-ai/dsh-superagent-prototype
 
 
 <!-- ====== 24 / G35-视频知识体系（来自:主工作区） ====== -->
@@ -16093,6 +16072,26 @@ DSH 改造
 - ⏳ 待你刷新/重启后复验工具栏是否完整
 
 > 诊断缺口：`/mindmap/api/*` 的 `tag:"api"` 日志在本次点击中未出现，但面板数据正常 → 说明该日志只覆盖部分分支，不影响功能，后续可补全。
+
+## ✅ 2026-11-12 09:0x 环境事实（新机器 · 跟规则 21 记的旧值不一样了）
+
+| 项 | 旧值（规则 21 写的） | 现在的真值 |
+| --- | --- | --- |
+| `DSH_HOME` | `E:\DeepSeekHarness\workspace` | **`C:\Users\16620\.dsh`** |
+| 生效配置 | `E:\DeepSeekHarness\workspace\profiles\web\cordis.patch.yml` | **`C:\Users\16620\.dsh\profiles\web\cordis.patch.yml`** |
+| `@deepseek-ai/*` 包目录 | `E:\DeepSeekHarness\app\node_modules\` | ❌ 该路径已不存在（现在打包在 `D:\dsh-desktop\resources\app.asar\`） |
+| 补丁脚本 | `E:\dsh创造\patch-dsh-mindmap.mjs` | 实际在 **`D:\dsh创造\patch-dsh-mindmap.mjs`** |
+
+- 工具链：node v24.14.1 / npm 11.11.0 / pnpm 11.1.0 / git 2.53 · **`dsh` CLI 不在 PATH**（所以规则 21 的 `--dump-config` 验证法暂时用不了）
+- profile 依赖（`C:\Users\16620\.dsh\profiles\web`）：`dsh-chat-search`、`dsh-mindmap@0.18.4`、**`dsh-ladder-superagents@0.2.1`（本次新增）**
+- `dsh.profile.bundles` 只列了 base / web-app / chat-search；mindmap 与 supa 走的是 `cordis.patch.yml` 里带 `name:` 的插入行（实测可行）
+- 验证替代法：YAML 用 `yaml` 库解析 + JSON 用 `JSON.parse` + 查 BOM 字节 + 看 `node_modules` 有没有落地
+- ⚠️ 规则 21 里的旧路径建议下次一并改正，别照抄
+
+## 📎 出处
+- 用户原话：「那你搭建起來，這樣的系統體系。配置齊全相關的」
+- 来源步骤：装 SupA 时按规则 21 先查 `DSH_HOME`，发现跟规则里写的不一致 → 记下来
+- 关联：[[F40-超级agent与会话派工]]、[[模型接入台账]]
 
 
 <!-- ====== 112 / 知识关联地图-视频创作（来自:主工作区） ====== -->
