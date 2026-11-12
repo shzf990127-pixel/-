@@ -16,9 +16,9 @@
  <button id="c" onclick="copyAll()">📋 复制全文（粘给 AI）</button>
  <button id="d" onclick="dl()">⬇️ 下载 md（聊天框上传附件用·最保险）</button>
  <span id="tip">已复制 ✓</span>
- <span class="hint">全量 180 份 · 1088 KB · 2026-11-12 13:20</span>
+ <span class="hint">全量 180 份 · 1088 KB · 2026-11-12 17:35</span>
 </div>
-<pre id="doc">🔑 本次交接包验证码：V-WRWP-AQRK
+<pre id="doc">🔑 本次交接包验证码：V-A8RA-JPXH
 
 > 如果你是接手这份文档的 AI：请在回答最前面先写出上面这串验证码，再开始回答。
 > 如果这份文档不在你的上下文里，你会不知道验证码——请直接说「我没读到文档」，不要猜。
@@ -30,7 +30,7 @@
 
 # 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-11-12 13:20。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-11-12 17:35。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -48,10 +48,10 @@
 # 导览（先读这页，下面是全文）
 
 ## 当前阶段
-- 装完等重启（新 bundle 只在启动组装，热加载不管）
+- 配置错误已修 → 等你在「路1 / 路2」里选
 
 ## 卡在哪
-- **要重启一次**（`/orchestrator/api/state` 现在 404）
+- 运行时 paused（GitHub 源缺 repository）→ 等你决定要不要走完整 GitHub 链
 
 ## 待办（F 编号=优先级）
 - F10 远程无人值守 · mimo-pro随时
@@ -3973,96 +3973,114 @@ node tools/after-restart.mjs
 &lt;!-- ====== 25 / F42-官方fork超级agent安装（来自:主工作区） ====== -->
 # 【25】F42-官方fork超级agent安装 （来自:主工作区）
 
-# ✅ 状态：已装进 desktop profile（A 选项）· 等一次重启才真正加载
+# ✅ 状态：面板已通（2026-11-12 17:3x 修好配置错误）
 
-- 你选了 A（官方 fork + 面板）→ 已把 `@vfvrpq/dsh-superagent@0.2.2` 装进 `profiles\desktop`
-- 已加进 `dsh.profile.bundles`；已在 `cordis.patch.yml` 写好 `dsh-superagent` 行（带 stateDir）
-- ❗ 面板路由 `/orchestrator/api/state` 目前 **404**：新增 bundle 只在**启动时组装**，热加载不管它 → 需要重启一次
-- ❗ 第一步只开「面板 + 会话总线」，GitHub 源先 `disabled`
+- 你报的「dsh-superagent 没有响应」= **我配置写错两个键**，不是插件坏
+- 已修 → 面板接口全部 200，masterId 已生成，会话总线 live
+- 还剩一条红字：`GitHub 源没指定仓库`（运行时 paused，只挡工单流程，不挡面板/会话总线）
 
-# 🔑 token 真相（你让我找的那份）
+# 🧨 报错原文与根因（精确到键）
 
-| 来源 | 结果 | 结论 |
-| --- | --- | --- |
-| Hermes 文档 `D:\hermes-temp\...\chat-logging-system\v7.0最终确认.md` | `ghp_Fgl…S2wi` → **401** | ❌ 已失效（经典 PAT，可能过期/被吊销） |
-| 迁移文档 `D:\UserFiles\Desktop\INFJ-IP报告\全对话导出.txt` | `github_pat_…7Pxk` → **401** | ❌ 也失效 |
-| 本机 `D:\dsh创造\.secrets\github.token` | `github_pat_…JvBS` → **200**，login=`shzf990127-pixel`，对 `-` 仓库 push=true | ✅ **唯一能用的** |
+```
+Error: dsh-superagent configuration has keys it does not use: eval, executor;
+docs/006-deployment.md lists the keys
+```
 
-- 扫描范围：`D:\hermes*`、`D:\迁移文件夹`、`D:\backup`、`D:\UserFiles`、`D:\创作`、`D:\副业`、`D:\dsh创造`、`~\.dsh` → 3 个不重复 token，逐个真实调用 API 验证
-- 我把 Hermes 那个存到了 `.secrets\github-token-hermes.txt` 备查（不要用，过期）
-- ❗ 结论：以后要 GitHub token，**只用 `.secrets\github.token`** 那份
+- 我上一轮在 profile 里写了 `eval: {mode: observe}` 和 `executor: {maxWorkers: 2}`
+- 但插件的配置 schema **只认这 5 个键**（`lib/poll-*.js` 的 `Config` + `machineOf` 严格校验）：
+  - `stateDir`（必填，绝对路径）
+  - `masterDirectory`
+  - `promptMaxChars`
+  - `admissionContextMaxPages`
+  - `admissionContextTimeoutMs`
+- ❗ `eval` 模式、并发、目录、prepare 命令这些属于**「设置」**，只能走面板或 Management API 存进 sqlite，**不在 profile 里配**
+- 修法：只留 `stateDir`，其余删掉（已做）
 
-# 🚧 为什么 GitHub 源先关掉（不是懒）
+# ✅ 修完的实测证据（端口 50816）
 
-| SETUP.md 要求 | 本机现状 |
+| 端点 | 结果 |
 | --- | --- |
-| GitHub CLI `gh` 2.48+ | ❌ 没装 |
-| `dsh` CLI（`dsh superagent --from-default-profile`） | ❌ 不在 PATH |
-| tmux | ❌ 没装（Windows 上可绕） |
-| 一个**独立的 agent 账号**（不能是你本人，否则它写的 PR 全署你的名） | ❌ 没有 |
-| `docs/006-deployment.md` + `scripts/dsh-superagent` | ❌ npm 包里没带（只在 git 仓库里） |
-| Node/pnpm/git/python | ✅ 都有 |
+| `GET /orchestrator/api/state` | **200**（含 setup / load / masterId / health / flow） |
+| `GET /orchestrator/api/settings` | **200**（2471 字节） |
+| `GET /orchestrator/api/tickets` | **200** |
+| `GET /orchestrator/api/overview` | **200** |
+| 日志 | `session bus: live Session control available` ✅ |
+| 状态目录 | `orchestrator.sqlite` + `session-bus/` 已生成 ✅ |
+| masterId | `orchestrator-a8efb57c8b22b9839f6d58c0b87b4313` |
 
-- ⇒ 先拿「面板 + 会话总线」这两个你已经要的价值；GitHub 工单那条链，等你愿意新建一个 agent 账号、装 gh 再开
+# 🔴 剩下的唯一问题：GitHub 源没配
 
-# 🧩 现在的配置（都在 desktop profile）
+```json
+"setup": { "problem": { "place": "github", "code": "repositoryUnset",
+  "detail": "The GitHub Source names no repository." } },
+"health": { "runtime": { "state": "paused", "detail": "Waiting for the deployment check" } }
+```
+
+- 插件在设计上**必须有一个 GitHub 仓库**才能把运行时从 paused 拉起来（它的世界观是「有人提 issue → 开工单」）
+- 但我把 GitHub 源那一行 `disabled: true` 了（本机没 gh CLI、也没有独立 agent 账号）
+- ⇒ 结果：面板/会话总线能用，工单流程一直等配置
+
+# 🅰️ 要清掉红字只有两条路
+
+## 路 1 · 走完整 GitHub 链（推荐，但要你配合）
+| 需要 | 谁做 |
+| --- | --- |
+| 装 `gh` CLI（winget 一条命令） | 我 |
+| 建一个**独立 agent 账号**（不要用你本人，否则 PR 全署你的名） | 你 |
+| 给这个账号一个专门仓库（不要用 `-` 那个发版仓） | 你 |
+| 把 token / repo / 允许名单填进设置 | 我 |
+
+## 路 2 · 只要面板 + 会话总线（现在这样）
+- 红字留着但**不影响**：面板能开、能读别的会话
+- 代价：每次打开面板都会看到「等待设置」
+
+# 🧩 当前配置（已修正版）
 
 | 项 | 值 |
 | --- | --- |
-| 包 | `profiles\desktop\node_modules\@vfvrpq\dsh-superagent`（0.2.2） |
-| 注册 | `package.json` → `dsh.profile.bundles` 末尾 |
-| 插件行 | `cordis.patch.yml` → `- id: dsh-superagent` + `name` + `stateDir` |
-| 状态目录 | `C:\Users\16620\.dsh\state\superagent`（已建） |
-| eval 模式 | `observe`（只记录、不擅自开工） |
-| 并发 | `maxWorkers: 2` |
+| 包 | `@vfvrpq/dsh-superagent@0.2.2` → `profiles\desktop\node_modules` |
+| bundles | 已注册（第 15 个） |
+| patch 行 | `- id: dsh-superagent`（`name` + 只有 `stateDir`） |
 | GitHub 源 | `- id: dsh-superagent-github` → `disabled: true` |
-| 面板地址 | `http://127.0.0.1:&lt;端口>/orchestrator/api/state`（要 header `x-orchestrator-request: 1`） |
-| 侧栏入口 | 名 **Superagent** |
+| 状态目录 | `C:\Users\16620\.dsh\state\superagent` |
+| 侧栏入口 | **Superagent** |
 
-# 🚀 重启后清单
-
-1. 重启 DSH（这次是真需要：新增 bundle 只在启动组装）
-2. 侧栏应出现 **Superagent** → 面板能打开（它的路由用的是新版 `handler(req,res)`，不像 SupA 那样踩 `inner is not a function`）
-3. 日志里搜 `dsh-superagent` / `orchestrator`，应看到激活记录
-4. 会话总线：能**读全机所有 profile 的会话**（从磁盘 transcript 读）；发消息/停止只在本进程内有效
-
-# 🔙 回滚（30 秒）
+# 🔙 回滚
 
 ```
 powershell -File D:\dsh创造\tools\revert-fork-superagent.ps1
 ```
-然后重启。备份：`package.json.bak-fork-20261112-131757`、`cordis.patch.yml.bak-fork-20261112-131757`
+（备份 `*.bak-fork-20261112-131757`）
 
 # ⏳ 待办
 
-- ⏳ 重启后确认面板能开（若报错，把错误贴我）
-- ⏳ 侧栏入口出现后，确认「读会话」能力（能否列出 4 个 workspace / 5 个会话）
-- ⏳ 想要 GitHub 工单链 → 需要你决定：新建 agent 账号（推荐独立账号）+ 我装 gh CLI + 指定仓库
-- ⏳ SupA（F40）与 fork 同时存在：两者工具前缀不同（`supa_*` vs `orchestrator_*`），暂不冲突；如果提示词太挤，可把 SupA 关掉
+- ⏳ 你决定走「路 1」还是「路 2」
+- ⏳ 走路 1：我装 gh → 你建账号 → 我配 repo/名单/提示词
+- ⏳ 面板能开后，验证「读更多会话」（会话总线读磁盘 transcript，跨 profile）
+- ⏳ 更新交接包里的版本说明：profile 配置只认 5 个键
 
 # 📎 出处
 
 ## 💬 你当时的完整原话
-> 诶关于 github token。 加面板我是比较倾向于A选项。 然后github token在保存在了hermes文档里面，你找找看。里面的文件。
+> dsh-superagent 没有响应：它可能正在重启；持续如此时，DSH 的日志写明原因，常见的是配置有误。
 
-> 之前我从其他电脑迁移过来的dsh文档好像也有。已经配置好的了。dsh专用。
+> 重啓了但這功能還未做好。
 
 ## 🎬 当时在做什么
-- 按你说的三处找 token（Hermes 文档 / 迁移文档 / 本机 .secrets），**逐个真实调 API 验证**，不靠猜
-- 读了官方 fork 的 SETUP.md 与实际依赖，发现它默认是「独立 profile + 独立进程」那套
-- 装包 → 注册 bundle → 写 patch 行 → 建 stateDir → 备回滚脚本
+- 按你说的去翻日志 → 直接抓到原文 `configuration has keys it does not use: eval, executor`
+- 读插件源码 `Config` schema 确认只认 5 个键 → 删掉多写的两个 → 重新探针
 
 ## 💥 碰撞与疑虑
 | 项 | 内容 |
 | --- | --- |
-| 碰撞点 | 「我要面板」 ↔ 「面板要整套基础设施（gh CLI、独立 agent 账号、独立 profile）」 |
-| 你的疑虑 | token 是不是早就配好了 |
-| 我核实的 | 三个 token 真实状态：两个 401、本机那个 200 且有 push 权限 |
-| 真正的缺口 | 不是 token，是**独立 agent 身份**（拿你的号干，PR 全署你的名） |
-| 要解决什么 | 先拿到「看得见」+「面板」，GitHub 自动接单后面再上 |
+| 碰撞点 | 「面板没响应」 ↔ 真实是「配置有两个多余键，插件拒绝启动」 |
+| 你的疑虑 | 是不是根本没装好 / 又要重来 |
+| 我核实的 | 日志原文、schema 五键、四个端点 200、masterId 已生成、sqlite 已落盘 |
+| 真正的缺口 | 我把「设置项」当成了「profile 配置项」——这是两类东西 |
+| 要解决什么 | 面板能开（已达成），并说清剩余红字的代价 |
 
 ## ✅ 结论
-- 定了什么：装 A；先开面板 + 会话总线，GitHub 源关；token 用 `.secrets\github.token`
+- 定了什么：配置已修正；面板 + 会话总线可用；GitHub 源保持关闭等你决定
 - 追踪编号：F42
 - 关联：[[F41-官方superagent全景与满血度]]、[[F40-超级agent与会话派工]]、[[环境与边界]]
 - 创建时间：2026-11-12
