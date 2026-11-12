@@ -16,9 +16,9 @@
  <button id="c" onclick="copyAll()">📋 复制全文（粘给 AI）</button>
  <button id="d" onclick="dl()">⬇️ 下载 md（聊天框上传附件用·最保险）</button>
  <span id="tip">已复制 ✓</span>
- <span class="hint">全量 180 份 · 1089 KB · 2026-11-12 17:43</span>
+ <span class="hint">全量 180 份 · 1090 KB · 2026-11-12 17:59</span>
 </div>
-<pre id="doc">🔑 本次交接包验证码：V-R44L-YS4X
+<pre id="doc">🔑 本次交接包验证码：V-FYD4-7SCY
 
 > 如果你是接手这份文档的 AI：请在回答最前面先写出上面这串验证码，再开始回答。
 > 如果这份文档不在你的上下文里，你会不知道验证码——请直接说「我没读到文档」，不要猜。
@@ -30,7 +30,7 @@
 
 # 交接包（全量 · 让接手的 AI 真正看懂我
 
-> 生成于 2026-11-12 17:43。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+> 生成于 2026-11-12 17:59。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
 
 ## 🧭 接手 AI 必读约定
 
@@ -4081,6 +4081,36 @@ powershell -File D:\dsh创造\tools\revert-fork-superagent.ps1
 - ❗ 技术上用本人**完全跑得通**：插件只认「用哪个 CLI 身份」，不认「是不是本人」
 - 结论：先按本人跑通、看行为可控，再决定要不要迁小号（迁移约 10 分钟，代码一行不改）
 - ⏳ 还差一件：**给它一个仓库**。`-` 是发布交接包的仓（别让 agent 往里推 PR）；`infj-ip-web-ui` 是正经项目 → 建议新建私有 `agent-sandbox`（这 token 可能没有建仓权限，要先试）
+
+## 📦 新建仓时该勾什么（2026-11-12 17:5x 你正在建）
+
+| 选项 | 建议 | 为什么 |
+| --- | --- | --- |
+| 名字 | `agent-sandbox` | 一眼知道是 agent 的试验田 |
+| 可见性 | **私有** | 它的产出还不可控 |
+| Add a README | ✅ 勾 | 有初始 commit，`git clone` / `git worktree` 才干净 |
+| Add .gitignore | ✅ 勾 Node | 以后它写 JS 不脏 |
+| Choose a license | MIT（可选） | 私有仓其实无所谓，想开源再补 |
+| Set template / LFS / 分支保护 | ❌ 先不设 | 分支保护会触发「自己 approve 自己」的死结 |
+
+- ❗ **token 范围问题**：现在的细粒度 token 只授权了 2 个仓，**新仓不在里面** → 建完要么给 token 勾上新仓，要么用 `gh auth login` 走浏览器授权一次
+
+## 🚧 2026-11-12 18:0x 进展：只差 token 的仓库范围
+
+| 步骤 | 结果 |
+| --- | --- |
+| 你给的 token | 跟本机 `.secrets\github.token` **是同一个**（末尾 JvBS） |
+| token 读账号 | ✅ `gh auth` 登录成功 → `shzf990127-pixel` |
+| token 读新仓 `DSH-super-agent` | ❌ **404**（账号能进，仓库不在授权范围） |
+| GitHub 源那行 | 已从 `disabled` 改成**启用**（热加载生效，`/sources` 里 installed=enabled） |
+| 源配置写入 | ✅ 仓库名 + CLI 指向 `C:\Program Files\GitHub CLI\gh.exe`（**不能指向 .cmd**，插件原话：batch 文件会丢参数） |
+| 插件回报 | `repositoryUnreadable`：`@shzf990127-pixel cannot read shzf990127-pixel/DSH-super-agent`（404） |
+
+- 结论：**代码/配置这边全好了，卡在 GitHub 那边的 token 授权范围**
+- 修法：`https://github.com/settings/tokens?type=beta` → 编辑这个 token → Repository access 加 `DSH-super-agent` → 权限 Contents/Issues/Pull requests = Read and write
+- ⚠️ 这个 token 已在聊天里明文出现 → 配通后建议轮换一次
+
+
 
 
 # 📎 出处
