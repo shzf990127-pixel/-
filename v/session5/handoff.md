@@ -1,0 +1,312 @@
+🔑 本次交接包验证码：V-6FVM-LBNZ
+
+> 如果你是接手这份文档的 AI：请在回答最前面先写出上面这串验证码，再开始回答。
+> 如果这份文档不在你的上下文里，你会不知道验证码——请直接说「我没读到文档」，不要猜。
+
+## 给接手 AI 的第一句话（照做）
+1) 先复述：当前目标 / 卡点 / 下一步（各一句）
+2) 再回答用户的问题
+3) 不确定的内容标「文档未提及」，禁止编造
+
+# 交接包（全量 · 让接手的 AI 真正看懂我
+
+> 生成于 2026-11-13 18:28。这是**全量**分层文档包：每个板块都是原文，不是摘要 —— 请你按需检索，不要当成都无关。
+
+## 🧭 接手 AI 必读约定
+
+> 用户同时使用多个 AI。此包目的：让你**接得上话、不跑偏**。
+>
+> 1. 用户是视觉空间学习者：优先表格/树/清单，不要长篇散文
+> 2. 先收敛再行动：碎片想法先归纳主线
+> 3. 决策用「决策卡」：≥3 选项 + 优缺点 + 推荐 + 理由
+> 4. 一次最多 3 个问题，最好 1 个
+> 5. 结论分三档：已确定 / 待验证 / 推测，不许混
+> 6. 不许编造用户没说过的话
+> 7. 读完先复述你理解的处境，用户点头再继续
+
+
+# 导览（先读这页，下面是全文）
+
+## 当前阶段
+- （见 00-focus）
+
+## 卡在哪
+
+
+## 待办（F 编号=优先级）
+
+
+## 已完成里程碑（最近 16 条）
+
+
+## 全量章节目录
+- 第01 节：20261113-003052-DSH-执行器会话主线
+
+
+# ⏱ 最近对话原文（本会话，最后 7 条）
+
+- 会话 ID：session-5e918aaf-120e-4be7-bab4-3dfd4728df0a
+- 提取时间：2026-11-13 18:28
+
+### 👤 测试当前模式功能，明白，已按你的要求动手：**直接改主 Session 模式本身**，不再用“全局补丁”兜底。
+
+## 一、改了什么
+
+我在 profile patch 里用同一个 id 覆盖了官方预设 `dsh-superagent-router-preset`：**原有每条都原样保留，再补上两条**。
+
+| 项 | 官方 router 预设 | 我改后 |
+|---|---|---|
+| 读文件 `tool-fs`（只读） | 有（但这台机器上没挂上） | 保留 |
+| 跑命令 `tool-pwsh` | 有（同样没挂上） | 保留 |
+| 找文件 `tool-fs-search`（grep/glob） | ❌ 没有 | ✅ **新增** |
+| 取证/记账/看图 `superagent-hands` | ❌ 没有 | ✅ **新增**（probe/grep/sessions/run/ticket/look） |
+| 子代理/网页/写文件/todo/计划/定时 | ❌ 官方刻意不给 | ❌ 仍然不给（**不偏离定位**） |
+
+**关键**：这些工具只在**调度者身上**付费（预设作用域），不会污染工人和其他会话；预算仍是 ~8.2k tokens/请求，不是标准模式的 17.4k。
+
+## 二、已验证 / 未验证（不糊你）
+
+| 项 | 结果 |
+|---|---|
+| 备份 | `cordis.patch.yml.bak-routerfix-2026-11-13T09-56-36`（改前原样） |
+| YAML 结构 | ✅ **PATCH_OK**：19 行、覆盖行在、10 个 plugin 行齐、`dsh-superagent`/`-github`/`-im` 三行未丢 |
+| BOM | ✅ false（不会崩启动） |
+| 回滚一行 | `cp "...bak-routerfix-2026-11-13T09-56-36" cordis.patch.yml` 然后重启 |
+| ⏳ 覆盖是否真挂上 | **未知，要重启才知道**（官方那两行本来就挂不上，可能不是"行内容"问题，而是 mount 失败被 `select(...).catch(()=>{})` 吞了——我在插件源码里看到了这个静默 catch） |
+
+## 三、你要做的一件事 + 重启后怎么验
+
+**重启 DSH**（预设只在挂载时解析，热更新不一定吃 patch）。
+
+重启后打开调度者会话，看三眼，就能定性：
+
+| 看到什么 | 含义 | 下一步 |
+|---|---|---|
+| `read`/`pwsh` **有** + `hands_*` **有** | ✅ 修好了 | 关掉全局 probe/run 省 90…（截断）
+### 🤖 # 实测结论：**第 1 种情况成立——已修好，并且不需要重启**
+
+## 一、先给结论
+
+| 检查点 | 结果 |
+|---|---|
+| `read` / `pwsh` | ✅ 存在且可以实际运行 |
+| `hands_*`（六件） | ✅ 全部存在且可以实际运行 |
+| `write` / `edit` | ❌ 不存在 —— 这正是 `write:false` 只读设计的预期结果，不是故障 |
+| 是否需要重启 | ❌ 不需要。补丁在 **17:56:36** 写入文件，DSH 进程在 **17:30** 启动，中间没有重启，但工具仍然已经可供使用 → **热加载确实吃到了补丁** |
+
+## 二、逐个实际运行（不是看列表，是真正调用）
+
+| 工具 | 实际输出 | 判定 |
+|---|---|---|
+| `read` | 读出 `desktop\cordis.patch.yml` 的 255–343 行（完整覆盖块） | ✅ |
+| `pwsh` | exit 0，`RUN-OK` / `DSH_HOME=C:\Users\16620\.dsh` | ✅ |
+| `glob` | 命中 28 个 `.md` | ✅ |
+| `grep` | 5 处命中 `router-preset/hands` | ✅ |
+| `hands_probe` | peek.mjs：2124 B / sha256 `047f133b…` | ✅ |
+| `hands_run` | exit 0；工作区写 4B、`D:\dsh创造` 写 4B 都成功 | ✅ |
+| `hands_grep` | 2 处命中（补丁 262–266 行） | ✅ |
+| `hands_sessions` | 读出 orchestrator 会话 **576 条**消息 | ✅ |
+| `hands_ticket` | T-HANDS-1 = done（`.hands\tickets.json`） | ✅ |
+| `hands_look` | sidebar-shot.png → glm-5.3-flash 准确认出抖音桌面端双列推荐流 | ✅ |
+
+关键证明：`grep`/`glob` 来自 `tool-fs-search`，**官方 router 预设里没有这一项**（我核对了原文件 128–203 行），现在有 → 说明**被挂载的预设就是我修改过的那份**。
+
+## 三、本轮又发现两个之前没注意的问题
+
+| 问题 | 证据 | 影响 |
+|---|---|---|
+| ❗**header 会话记录写的是 `agentPreset: standard`**，但实际运行的却是一套 router 预设工具（缺少 write/subagent/todo） | `hands_sessions` …（截断）
+### 👤 继续做A，另外你再全盘复盘，看看聊天记录经常会因为什么错误反复复工。还有我觉得没处理好笨的原因是什么。都把那个模式配置好。DSH里面所有的会话聊天内容，可能犯的错都看一遍。总结后再出套方案，然后做好。
+### 🤖 # 一、A 项已完成，改动已写入文件（附证据）
+
+| 项 | 结果 |
+|---|---|
+| 删掉的东西 | 预设里重复挂载的 `- id: superagent-hands` 两行（bundle 层本来就会全局注册） |
+| 现在的 `cordis.patch.yml` | **342 行 / 14,200 B / 无 BOM / `superagent-hands` 只剩注释 1 处** |
+| 保留完好 | `tool-fs-search`、`tool-pwsh`、`dsh-superagent-router` 全在 |
+| 备份 | `cordis.patch.yml.bak-handsdedupe-20261113-181805` |
+| 自检 | `deliver-check` 5/5 通过（含补丁本身） |
+
+---
+
+# 二、全盘复盘：26 个会话扫完，不是抽样印象
+
+**数据**：26 个会话（含 `D:\dsh创造` 那 4 个 145/119/58/48 条消息的大会话）· **644 条用户消息** · **4,958 次工具调用** · **377 次工具报错**
+> 方式：多帧 zstd 全解 → 逐条解析 → 按机制聚合。原话清单在审计报告里，不是凭感觉总结。
+
+## 反复复工的 6 个机制（按次数）
+
+| # | 机制 | 次数 | 报错原文 |
+|---|---|---|---|
+| 1 | **改文件前没读** | **35** | `cannot modify "…": file has not been read` |
+| 2 | **沙箱授权失败** | **12** | `SetNamedSecurityInfoW failed (Win32 5): grantWrite(D:\dsh创造)` |
+| 3 | 读后被外部改动 | 4 | `file changed since it was read` |
+| 4 | 工具名根本不存在 | 5 | `unknown tool "pwsh"` / `"orchestrator_session_message"` |
+| 5 | **没验收就汇报** | **157 条信号** | 「监督做了，就返回给我，没有验证」「面板做好了，我无法打开…这就是你的验收标准吗？**是错误的**」 |
+| 6 | 重复派单 / 多线并行 | 11+ | 同一 trigger 3 次（F52 已记） |
+
+## 关于「笨」：问题不在于模型不聪明，而在于五个机制
+
+| 根因 | 翻译成人话 |
+|---|---|
+| **R1 只有动作，没有证据闸门** | 「完成」= 我说做完了，并非 **你能打开**。所以你说「做好了但我打不开」 |
+| **R2 工具面长期带伤** | 35 次要…（截断）
+### 👤 那你做，123都做。4最后做。你对应的方案做好。三个都要做。
+### 🤖 # 1、2、3 全部做完了，4 卡在一个我绕不过去的地方
+
+## ✅ 1. AGENTS.md 新增三章（全局生效，已热回灌）
+
+| 章 | 内容 | 为什么加 |
+|---|---|---|
+| **32 交付三关** | G1 `deliver-check` 证据 / G2 A1..An 对号，缺列=未完成 / G3 用户视角（截图·真点·真跑） | 治「没验收就汇报」157 条信号 |
+| **33 先读后写 + WIP=1** | 改前先 read；报 `changed` 就重读；同时只留 1 件待审 | 治 35 次 + 4 次真实返工 |
+| **34 派工 brief 模板** | 缺「验收命令」字段的 brief = 无效派工 | 让验收在派工时就写死 |
+
+- `AGENTS.md` 现在 **39,810 B / 725 行 / 无 BOM**，备份 `AGENTS.md.bak-delivergate-20261113-182406`
+- 已确认**回灌进本会话**（这轮的 system-reminder 里就能看到 `## 34.`）
+
+## ⚠️ 2. ACL：诊断完了，结论是「这台机器不属于这类缺陷」
+
+我按技能跑了那一条命令（不拆、不重试）：
+
+| 项 | 结果 |
+|---|---|
+| VERDICT | **NOT_THIS_CLASS** |
+| `WRITE_DAC` / `WRITE_OWNER` | 都是 **True**（在当前用户上） |
+| 扫描 | 1,833 个对象，**0** 个 `S-1-15-2-*` 包权限项 |
+| 改动 | FIXED=0 / GRANTED=0 / REFUSED=0 —— **没有可修的东西，也没有回滚** |
+| 报告 | `D:\dsh创造\logs\acl-fix\acl-report-74f13acf6cdb4636a9b92fe60818f766.jsonl` |
+
+**那 12 次 `grantWrite` 到底怎么回事**（我追到会话级）：
+- 全部发生在 **11-03 ~ 11-06**，cwd = `D:\dsh创造` 的老会话（`session-2676a3c4` 占 10 次，11-04 17:43–17:45）
+- 那时是**受限令牌**去改 DACL（Win32 5 = 拒绝访问）；今天这两项权限已具备
+- 所以：**当时是真伤，现在伤已不在**。不修是正确的，硬改反而是制造风险
+
+> 如果还复现：把**具体失败路径**给我，我用同一条命令再跑一次（一次一个路径）。
+
+## ✅ 3. brief 模板落地
+
+[brief-template.md](D:\dsh创造\tools\brief-template.md)（980 B / 35 行），字段…（截断）
+### 👤 检查还有没有漏洞，有没有地方要优化，还有要实测一遍。需要怎么实测。
+
+
+
+<!-- ====== 01 / 20261113-003052-DSH-执行器会话主线（来自:主工作区） ====== -->
+# 【01】20261113-003052-DSH-执行器会话主线 （来自:主工作区）
+
+# 角色定位
+
+## ❗ 副手B / 调度主线
+- 身份：superagent 的手，负责多线程处理派下来的活
+- 纪律：收 brief → 直接干 → 结构化回报，不做无关发散
+- 沿革：执行器 → 副手B → F53 验收 → F54 全盘复盘 → 本轮落地 1/2/3
+
+## 执行纪律（AGENTS.md）
+- 先收敛主线，再动手；回复用表格/树；改配置先查真实路径，改完验证被加载
+
+# 本轮环境事实（实测）
+
+## 我的沙箱
+- 会话工作区：`C:\Users\16620\.dsh\state\superagent`（文件策略 workspace-write）
+- `hands_run` 是宿主级：实测可写 `D:\dsh创造`；普通写工具不行
+- `working_directory cd` 只改进程 cwd，**不改沙箱工作区，也不改脑图工具解析根**
+
+## ❗ AGENTS.md 里的 E: 盘全废，真工作区在 D:
+- `D:\dsh创造` 有 192 份专题脑图 + `tools\rule-check.mjs`
+
+# F53 验收：主 Session 模式（18:05）
+
+## ✅ 分支 1「修好了」
+- `read`/`pwsh`/`grep`/`glob`/`hands_*` 全在；`write`/`edit` 不在（只读设计正确）
+- 补丁 17:56:36 落盘、进程 17:30 启动 → 热加载生效，无需重启
+
+## 实测清单（全部真调用）
+| 工具 | 证据 |
+|---|---|
+| read | 读出 `cordis.patch.yml` 255–343 行 |
+| pwsh | exit 0，`RUN-OK` / `DSH_HOME=C:\Users\16620\.dsh` |
+| glob | 命中 28 个 .md |
+| grep | 5 处命中 `router-preset/hands` |
+| hands_probe | peek.mjs 2124 B / sha256 047f133b… |
+| hands_run | exit 0；工作区与 `D:\dsh创造` 均写成功 |
+| hands_grep | 2 处命中 |
+| hands_sessions | orchestrator 576 条消息可读 |
+| hands_ticket | T-HANDS-1 = done |
+| hands_look | sidebar-shot.png → 认出抖音桌面端 |
+
+## 补丁内容核实
+- `profiles\desktop\cordis.patch.yml` 269 行起同 id 覆盖 `dsh-superagent-router-preset`
+- 保留官方：agent-instructions / time-context / shell(pwsh) / tool-fs(只读) / jobs / skill / compaction
+- 新增：`tool-fs-search`（grep+glob）→ 官方 router 没有，**证明生效的是我改的那份**
+- 备份：`cordis.patch.yml.bak-routerfix-2026-11-13T09-56-36`
+
+## ✅ A 项：hands 去重（18:18）
+- 删预设内重复挂载两行（bundle 已全局注册）
+- 342 行 / 14200 B / 无 BOM / 备份 `cordis.patch.yml.bak-handsdedupe-20261113-181805`
+
+## ❗ 遗留
+- 会话 header 写 `agentPreset: standard`，实跑 router → `isRouter()` 若读 header 会误判
+
+# F54 复盘：为什么反复复工（18:20）
+
+## 数据
+- 26 会话 / 644 条用户消息 / 4958 次工具调用 / 377 次工具报错
+
+## 复发 TOP6
+| # | 机制 | 次数 | 证据 |
+|---|---|---|---|
+| 1 | 改文件前没读 | 35 | `file has not been read` |
+| 2 | 沙箱授权失败 | 12 | `grantWrite(D:\dsh创造)`（全是 11-03~11-06） |
+| 3 | 读后被改 | 4 | `file changed since it was read` |
+| 4 | 工具名不存在 | 5 | `unknown tool "pwsh"` |
+| 5 | 没验收就汇报 | 157 信号 | 「监督做了就返回给我，没有验证」 |
+| 6 | 重复派单/多线 | 11+ | 同一 trigger 3 次 |
+
+## 根因
+- R1 只有动作没有证据闸门；R2 工具面带伤；R3 身份/工具错位；R4 并行过量；R5 长上下文自相矛盾
+
+## 产出（可复查）
+- `tools\deliver-check.mjs`（G1）/ `tools\rework-audit.mjs`（可重跑）
+- `logs\audit\session-audit-20261113-181839.md` / `返工根因与整改方案-20261113.md` / `rework-latest.md`
+
+# 本轮执行记录（18:18–18:32）：1/2/3 全做，4 卡 cwd
+
+## ✅ 1. AGENTS.md 新增三章（全局生效，已回灌）
+- **32 交付三关**：G1 `deliver-check` 证据 / G2 A1..An 对号缺列=未完成 / G3 用户视角（截图·真点·真跑）
+- **33 先读后写 + WIP=1**：改前先 read；报 changed 就重读；同时只留 1 件待审
+- **34 派工 brief 模板**：缺「验收命令」的 brief 视为无效派工
+- 39810 B / 725 行 / 无 BOM / 备份 `AGENTS.md.bak-delivergate-20261113-182406`
+
+## ✅ 3. brief 模板落地
+- `D:\dsh创造\tools\brief-template.md`（980 B / 35 行）
+- 字段：任务码 / 目标 / 事实 / 交付物 / 验收命令 A1..An / 边界 / 回报格式 / 时限
+
+## ⚠️ 2. ACL 诊断：不属于 ACL 缺陷类，无改动
+- 跑 `diagnose-windows-sandbox-acl.ps1 -Path D:\dsh创造 -AllowRoot D:\dsh创造`
+- **VERDICT=NOT_THIS_CLASS**：WRITE_DAC=True、WRITE_OWNER=True、扫 1833 对象、0 个 `S-1-15-2-*` 包 ACE
+- FIXED=0 / GRANTED=0 / REFUSED=0 → 没有可修的东西
+- 历史 12 次 `grantWrite` 全在 11-03~11-06 的 `D:\dsh创造` 会话（session-2676a3c4 占 10 次，11-04 17:43–17:45）
+- 结论：当时受限令牌改不了 DACL，现在权限已具备；再复现要带具体失败路径重跑
+- 报告：`D:\dsh创造\logs\acl-fix\acl-report-74f13acf6cdb4636a9b92fe60818f766.jsonl`
+
+## ⏳ 4. F54 脑图：卡在 cwd
+- 试过 `cd D:\dsh创造` → 脑图工具仍解析到 `C:\Users\...\superagent\.mindmaps`（ENOENT）
+- 工具绑定**会话工作区**，不跟 cwd → 本会话建不了 F54
+
+# 下一步
+- ⏳ 选项 A：你在 `D:\dsh创造` 开会话，我用脑图工具建 F54 并登记 `_tree.md`
+- ⏳ 选项 B：你明确授权我用 `hands_run` 写 F54（会标注「非脑图工具写入」）
+- ⏳ 确认 `isRouter()` 读到的预设（header 写 standard）
+- ⏳ 一周后重跑 `rework-audit` 看复发下降
+
+# 📎 出处
+- 用户原话（本轮）：「那你做，123都做。4最后做。你对应的方案做好。三个都要做。」
+- 用户原话（上一轮）：「继续做A，另外你再全盘复盘…我觉得没处理好笨的原因是什么」
+- 实测：`AGENTS.md` 39810 B / 725 行 / 无 BOM；`## 34.` 已回灌到会话
+- 实测：ACL 脚本 RECAP `verdicts:[NOT_THIS_CLASS]`、`changes:[]`、`fixed:0`
+- 实测：`mindmap_get .mindmaps\_focus.md` → `ENOENT ... superagent\.mindmaps\_focus.md`（cd 无效）
+- 创建时间：2026-11-13
+
+
+---
+*交接包完（全量 1 份）。源文件更新后重跑 tools/build-handoff.mjs 再生成。*
